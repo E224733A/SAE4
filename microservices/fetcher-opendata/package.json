@@ -1,0 +1,25 @@
+{
+  "name": "fetcher-opendata",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node service.js",
+    "dev": "nodemon service.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.6.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "https-proxy-agent": "^5.0.1",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

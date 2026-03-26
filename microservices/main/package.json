@@ -1,0 +1,24 @@
+{
+  "name": "main-brain",
+  "version": "1.1.0",
+  "description": "Microservice agrégateur / brain pour la SAE S4",
+  "main": "service.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node service.js",
+    "dev": "nodemon service.js",
+    "test": "node --test",
+    "swagger:check": "node -e \"const spec=require('./docs/swagger'); console.log(Object.keys(spec.paths))\""
+  },
+  "dependencies": {
+    "axios": "^1.8.2",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "supertest": "^7.0.0"
+  }
+}
