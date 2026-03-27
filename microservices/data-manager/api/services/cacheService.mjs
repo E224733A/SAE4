@@ -15,43 +15,48 @@ function isExpired(cacheEntry) {
   if (!cacheEntry?.expiresAt) {
     return true;
   }
+
   return new Date(cacheEntry.expiresAt).getTime() <= Date.now();
 }
 
-async function refreshType(type) {
+async function refreshType(type, initialState = 'CACHE_MISS') {
   assertKnownType(type);
 
-  const stateTrace = [
-    'READ_REQUESTED',
-    'CACHE_MISS_OR_EXPIRED',
-    'FETCHER_REQUESTED'
-  ];
+  const stateTrace = ['READ_REQUESTED', initialState, 'FETCHER_REQUESTED'];
 
-  const fetched = await fetcherDao.fetchDataset(type);
-  stateTrace.push('FETCHER_RESPONSE_RECEIVED');
+  try {
+    const fetched = await fetcherDao.fetchDataset(type);
 
-  const items = Array.isArray(fetched?.items) ? fetched.items : [];
-  const ttlSeconds = getTtlSeconds(type);
-  const fetchedAt = fetched?.fetchedAt ? new Date(fetched.fetchedAt) : new Date();
-  const expiresAt = new Date(fetchedAt.getTime() + ttlSeconds * 1000);
+    const items = Array.isArray(fetched?.items) ? fetched.items : [];
+    const ttlSeconds = getTtlSeconds(type);
+    const fetchedAt = fetched?.fetchedAt ? new Date(fetched.fetchedAt) : new Date();
+    const expiresAt = new Date(fetchedAt.getTime() + ttlSeconds * 1000);
 
-  const saved = await poiDao.upsertTypeData(type, items, {
-    source: 'fetcher-opendata',
-    fetchedAt,
-    expiresAt
-  });
+    const saved = await poiDao.upsertTypeData(type, items, {
+      source: 'fetcher-opendata',
+      fetchedAt,
+      expiresAt
+    });
 
-  stateTrace.push('CACHE_UPDATED');
-  stateTrace.push('RESPONSE_READY');
+    stateTrace.push('CACHE_UPDATED');
+    stateTrace.push('RESPONSE_READY');
 
-  return {
-    state: 'CACHE_UPDATED',
-    stateTrace,
-    type,
-    itemCount: saved.itemCount,
-    fetchedAt: saved.fetchedAt,
-    expiresAt: saved.expiresAt
-  };
+    return {
+      state: 'RESPONSE_READY',
+      stateTrace,
+      type,
+      items,
+      cache: {
+        fetchedAt: saved.fetchedAt,
+        expiresAt: saved.expiresAt,
+        itemCount: saved.itemCount
+      }
+    };
+  } catch (error) {
+    stateTrace.push('REFRESH_FAILED');
+    error.stateTrace = stateTrace;
+    throw error;
+  }
 }
 
 async function ensureFreshType(type) {
@@ -59,34 +64,24 @@ async function ensureFreshType(type) {
 
   const existing = await poiDao.findByType(type);
 
-  if (existing && !isExpired(existing)) {
-    return {
-      state: 'CACHE_HIT',
-      type,
-      items: existing.items,
-      cache: {
-        fetchedAt: existing.fetchedAt,
-        expiresAt: existing.expiresAt,
-        itemCount: existing.itemCount
-      }
-    };
+  if (!existing) {
+    return refreshType(type, 'CACHE_MISS');
   }
 
-  const refreshed = await refreshType(type);
-  const freshEntry = await poiDao.findByType(type);
+  if (isExpired(existing)) {
+    return refreshType(type, 'CACHE_EXPIRED');
+  }
 
   return {
-    state: existing ? 'CACHE_REFRESHED' : 'CACHE_MISS_REFRESHED',
+    state: 'RESPONSE_READY',
+    stateTrace: ['READ_REQUESTED', 'CACHE_HIT', 'RESPONSE_READY'],
     type,
-    refresh: refreshed,
-    items: freshEntry?.items || [],
-    cache: freshEntry
-      ? {
-          fetchedAt: freshEntry.fetchedAt,
-          expiresAt: freshEntry.expiresAt,
-          itemCount: freshEntry.itemCount
-        }
-      : null
+    items: existing.items || [],
+    cache: {
+      fetchedAt: existing.fetchedAt,
+      expiresAt: existing.expiresAt,
+      itemCount: existing.itemCount
+    }
   };
 }
 
@@ -103,8 +98,20 @@ async function inspectCache(type) {
     };
   }
 
+  if (isExpired(existing)) {
+    return {
+      state: 'CACHE_EXPIRED',
+      type,
+      cache: {
+        fetchedAt: existing.fetchedAt,
+        expiresAt: existing.expiresAt,
+        itemCount: existing.itemCount
+      }
+    };
+  }
+
   return {
-    state: isExpired(existing) ? 'CACHE_EXPIRED' : 'CACHE_HIT',
+    state: 'CACHE_HIT',
     type,
     cache: {
       fetchedAt: existing.fetchedAt,

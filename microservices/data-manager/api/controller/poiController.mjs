@@ -21,7 +21,7 @@ const poiController = {
     try {
       const { type } = req.params;
       const result = await cacheService.inspectCache(type);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }

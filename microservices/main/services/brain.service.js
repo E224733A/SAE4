@@ -78,7 +78,10 @@ const brainService = {
     const availablePoi = uniquePois(groupedResults.flatMap((group) => group.items));
     stateTrace.push('POI_AGGREGATED');
 
-    const rankedPois = rankPoisBetweenPoints(start, end, availablePoi).slice(0, Math.max(0, maxPoi));
+    const rankedPois = rankPoisBetweenPoints(start, end, availablePoi).slice(
+      0,
+      Math.max(0, maxPoi)
+    );
     stateTrace.push('POI_SELECTED');
 
     const routeSegments = createSegments(start, rankedPois, end);
