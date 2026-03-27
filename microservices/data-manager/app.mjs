@@ -3,14 +3,17 @@ import poiRoutes from './api/route/poiRoute.mjs';
 
 const app = express();
 
-// Middleware pour parser les requêtes JSON (crucial pour recevoir les données du fetcher)
-app.use(express.json({ limit: '50mb' })); // Limite augmentée car les données OpenData peuvent être lourdes
+app.use(express.json({ limit: '50mb' }));
 
 app.get('/', (req, res) => {
-    res.send('Data Manager est opérationnel (Connecté à MongoDB en mémoire) !');
+  res.send('Data Manager opérationnel.');
 });
 
-// Branchement des routes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ service: 'data-manager', status: 'ok' });
+});
+
+// Point d'entrée pivot pour le brain
 app.use('/api/db', poiRoutes);
 
 export default app;

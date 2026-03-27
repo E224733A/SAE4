@@ -15,14 +15,18 @@ function isExpired(cacheEntry) {
   if (!cacheEntry?.expiresAt) {
     return true;
   }
-
   return new Date(cacheEntry.expiresAt).getTime() <= Date.now();
 }
 
 async function refreshType(type) {
   assertKnownType(type);
 
-  const stateTrace = ['CACHE_REFRESH_REQUESTED', 'FETCHER_CALL'];
+  const stateTrace = [
+    'READ_REQUESTED',
+    'CACHE_MISS_OR_EXPIRED',
+    'FETCHER_REQUESTED'
+  ];
+
   const fetched = await fetcherDao.fetchDataset(type);
   stateTrace.push('FETCHER_RESPONSE_RECEIVED');
 
@@ -38,6 +42,7 @@ async function refreshType(type) {
   });
 
   stateTrace.push('CACHE_UPDATED');
+  stateTrace.push('RESPONSE_READY');
 
   return {
     state: 'CACHE_UPDATED',
@@ -85,6 +90,30 @@ async function ensureFreshType(type) {
   };
 }
 
+async function inspectCache(type) {
+  assertKnownType(type);
+
+  const existing = await poiDao.findByType(type);
+
+  if (!existing) {
+    return {
+      state: 'CACHE_MISS',
+      type,
+      cache: null
+    };
+  }
+
+  return {
+    state: isExpired(existing) ? 'CACHE_EXPIRED' : 'CACHE_HIT',
+    type,
+    cache: {
+      fetchedAt: existing.fetchedAt,
+      expiresAt: existing.expiresAt,
+      itemCount: existing.itemCount
+    }
+  };
+}
+
 async function getAllCachedPoi() {
   const entries = await poiDao.findAll();
   return entries.flatMap((entry) => entry.items || []);
@@ -93,5 +122,6 @@ async function getAllCachedPoi() {
 export default {
   ensureFreshType,
   refreshType,
+  inspectCache,
   getAllCachedPoi
 };

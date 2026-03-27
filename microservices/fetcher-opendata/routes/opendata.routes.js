@@ -3,11 +3,7 @@ const openDataController = require('../controllers/opendata.controller');
 
 const router = express.Router();
 
+// Une seule route interne, pas d'alias publics dataset par dataset
 router.get('/fetch/:datasetKey', openDataController.fetchDataset);
-
-// Alias de compatibilité
-router.get('/toilettes', openDataController.getToilettes);
-router.get('/parkings', openDataController.getParkings);
-router.get('/composteurs', openDataController.getComposteurs);
 
 module.exports = router;

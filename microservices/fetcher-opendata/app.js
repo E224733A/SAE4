@@ -13,7 +13,8 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ service: 'fetcher-opendata', status: 'ok' });
 });
 
-app.use('/api', openDataRoutes);
+// Route interne uniquement
+app.use('/internal', openDataRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route introuvable.' });
@@ -23,7 +24,14 @@ app.use((err, req, res, next) => {
   const status = err.status || 500;
   const code = err.code || 'FETCHER_INTERNAL_ERROR';
   const message = err.message || 'Erreur interne du fetcher.';
-  console.error('[Fetcher][Error]', { status, code, message, path: req.originalUrl, method: req.method });
+
+  console.error('[Fetcher][Error]', {
+    status,
+    code,
+    message,
+    path: req.originalUrl,
+    method: req.method
+  });
 
   if (res.headersSent) {
     return next(err);
