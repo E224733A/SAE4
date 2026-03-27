@@ -325,7 +325,6 @@ npm run dev
 - `data-manager` : `3002`
 - `main` : `3003`
 
----
 
 ## 11. Routes principales
 
@@ -341,21 +340,25 @@ Routes publiques principales :
 
 ### 11.2 Data-manager
 
-Routes principales :
+Routes publiques du pivot :
 
 - `GET /api/db/poi?type=...`
-- `POST /api/db/refresh`
 - `GET /api/db/cache/:type`
+
+Le `data-manager` est le point d'accès aux POI pour le `brain`.
+Il décide lui-même s'il doit servir le cache ou déclencher un rafraîchissement interne.
 
 ### 11.3 Fetcher-opendata
 
-Route technique interne de récupération/normalisation :
+Route technique interne :
 
-- `GET /api/fetch/:datasetKey`
+- `GET /internal/fetch/:datasetKey`
 
-> Dans l'idéal d'architecture, cette route est interne au système. Le flux métier normal passe par le `brain`, puis le `data-manager`.
+Cette route n'est pas une route métier publique.
+Le flux normal reste :
 
----
+`Client → brain → data-manager → fetcher-opendata → OpenData Nantes`
+
 
 ## 12. Exemples de tests
 

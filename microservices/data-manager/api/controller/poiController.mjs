@@ -1,4 +1,4 @@
-import cacheService from '../service/cacheService.mjs';
+import cacheService from '../services/cacheService.mjs';
 
 const poiController = {
   async getPOI(req, res, next) {

@@ -1,5 +1,5 @@
-import poiDao from '../dao/poiDAO.mjs';
-import fetcherDao from '../dao/fetcherDAO.mjs';
+import poiDao from '../dao/poiDao.mjs';
+import fetcherDao from '../dao/fetcherDao.mjs';
 import { ALLOWED_TYPES, getTtlSeconds } from '../config/cacheConfig.mjs';
 
 function assertKnownType(type) {

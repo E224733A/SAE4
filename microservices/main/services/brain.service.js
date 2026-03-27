@@ -65,12 +65,14 @@ const brainService = {
       ? payload.maxPoi
       : Number(process.env.MAX_DEFAULT_POI || 3);
 
-    const stateTrace = ['REQUEST_RECEIVED', 'REQUEST_VALIDATED'];
+    const stateTrace = ['QUERY_RECEIVED', 'QUERY_VALIDATED'];
 
     let groupedResults = [];
+
     if (poiTypes.length > 0) {
+      stateTrace.push('DATA_REQUESTED');
       groupedResults = await Promise.all(poiTypes.map((type) => fetchByType(type)));
-      stateTrace.push('DATA_MANAGER_RESPONSE_RECEIVED');
+      stateTrace.push('DATA_RECEIVED');
     }
 
     const availablePoi = uniquePois(groupedResults.flatMap((group) => group.items));
@@ -81,6 +83,7 @@ const brainService = {
 
     const routeSegments = createSegments(start, rankedPois, end);
     const route = await routingDao.buildRoute(routeSegments);
+
     stateTrace.push('ROUTE_BUILT');
     stateTrace.push('RESPONSE_READY');
 

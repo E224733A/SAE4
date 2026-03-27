@@ -1,5 +1,5 @@
 import express from 'express';
-import poiRoutes from './api/route/poiRoute.mjs';
+import poiRoutes from './api/routes/poiRoute.mjs';
 
 const app = express();
 
@@ -13,7 +13,6 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ service: 'data-manager', status: 'ok' });
 });
 
-// Point d'entrée pivot pour le brain
 app.use('/api/db', poiRoutes);
 
 export default app;
