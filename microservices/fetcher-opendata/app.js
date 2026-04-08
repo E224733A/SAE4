@@ -1,10 +1,11 @@
 const express = require('express');
 const openDataRoutes = require('./routes/opendata.routes');
 
+// Ce service sert uniquement à récupérer et normaliser les données OpenData
 const app = express();
 
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));// Permet de lire les corps JSON des requêtes entrantes
 
 
 app.get('/', (req, res) => {
@@ -12,18 +13,18 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req, res) => {// Route simple pour vérifier manuellement que le service est démarré
   res.status(200).json({ service: 'fetcher-opendata', status: 'ok' });
 });
 
-// Route interne uniquement
+// Les routes du fetcher sont internes : le client ne doit pas appeler ce service directement
 app.use('/internal', openDataRoutes);
 
-// Middleware pour gérer les routes non trouvées
+// Si aucune route ne correspond, on renvoie une erreur 404 claire
 app.use((req, res) => {
   res.status(404).json({ error: 'Route introuvable.' });
 });
-// Middleware de gestion des erreurs global, pour capturer toutes les erreurs non gérées dans les routes et les services, et renvoyer une réponse d'erreur structurée au client, tout en loggant l'erreur pour faciliter le debug.
+// Middleware global de gestion d'erreur : transforme une exception en réponse JSON exploitable
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   const code = err.code || 'FETCHER_INTERNAL_ERROR';

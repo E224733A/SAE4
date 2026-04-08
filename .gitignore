@@ -1,9 +1,2 @@
 node_modules/
-**/node_modules/
-.cache/
-**/.cache/
 .env
-.env.*
-npm-debug.log*
-dist/
-coverage/

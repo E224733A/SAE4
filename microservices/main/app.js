@@ -1,22 +1,22 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./docs/swagger');
+const swaggerSpec = require('./docs/swagger');// Swagger permet de documenter et tester les routes du brain
 const brainRoutes = require('./routes/brain.routes');
-
+// C'est le service métier principal vu par le client
 const app = express();
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));// Permet de lire du JSON dans les requêtes
 
 app.get('/', (req, res) => {
   res.send('Le microservice main / brain est opérationnel.');
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ service: 'main-brain', status: 'ok' });
+  res.status(200).json({ service: 'main-brain', status: 'ok' });// Route simple pour vérifier que le service répond
 });
 
-app.use('/api', brainRoutes);
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api', brainRoutes);// Toutes les routes métier sont regroupées sous /api
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));// Documentation interactive des routes
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route introuvable.' });
